@@ -8,3 +8,7 @@ Also you can look at http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#libsvm_for_s
 of string kernel (with no warranty).
 
 svm.SVC is a basic class from scikit-learn for SVM classification. It uses one-vs-one approach in multiclass case.
+
+FILES:
+stringSVM.py - basic algorithm from the article
+stringSVM_optimized_K2.py - algorithm with K''() from the article
