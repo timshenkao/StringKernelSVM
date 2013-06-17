@@ -4,9 +4,43 @@ from sklearn.datasets import fetch_20newsgroups
 from sklearn.svm import libsvm
 import sys
 from time import time
+from functools import wraps
 
 
 LIBSVM_IMPL = ['c_svc', 'nu_svc', 'one_class', 'epsilon_svr', 'nu_svr']
+
+
+def caching():
+    """
+    Cache decorator. Arguments to the cached function must be hashable.
+    """
+    def decorate_func(func):
+        cache = dict()
+        # separating positional and keyword args
+        kwarg_point = object()
+
+        @wraps(func)
+        def cache_value(*args, **kwargs):
+            key = args
+            if kwargs:
+                key += (kwarg_point,) + tuple(sorted(kwargs.items()))
+            if key in cache:
+                result = cache[key]
+            else:
+                result = func(*args, **kwargs)
+                cache[key] = result
+            return result
+
+        def cache_clear():
+            """
+            Clear the cache
+            """
+            cache.clear()
+
+        # Clear the cache
+        cache_value.cache_clear = cache_clear
+        return cache_value
+    return decorate_func
 
 
 class StringKernelSVM(svm.SVC):
@@ -16,7 +50,6 @@ class StringKernelSVM(svm.SVC):
     Text classification using string kernels. Journal of Machine Learning Research, 2, 2002 .
     svm.SVC is a basic class from scikit-learn for SVM classification (in multiclass case, it uses one-vs-one approach)
     """
-
     def __init__(self, subseq_length=3, lambda_decay=0.5):
         """
         Constructor
@@ -30,6 +63,7 @@ class StringKernelSVM(svm.SVC):
         svm.SVC.__init__(self, kernel='precomputed')
 
 
+    @caching()
     def _K(self, n, s, t):
         """
         K_n(s,t) in the original article; recursive function
@@ -53,6 +87,7 @@ class StringKernelSVM(svm.SVC):
             return result
 
 
+    @caching()
     def _K1(self, n, s, t):
         """
         K'_n(s,t) in the original article; auxiliary intermediate function; recursive function

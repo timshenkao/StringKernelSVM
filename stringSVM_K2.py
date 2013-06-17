@@ -4,7 +4,6 @@ from sklearn.datasets import fetch_20newsgroups
 from sklearn.svm import libsvm
 import sys
 from time import time
-import random
 from functools import wraps
 
 
@@ -177,69 +176,66 @@ class StringKernelSVM(svm.SVC):
         #store K(s,s) values in dictionary to avoid recalculations
             for i in range(len_X1):
                 sim_docs_kernel_value[i] = self._K(self.subseq_length, X1[i], X1[i])
-                #calculate Gram matrix
+        #calculate Gram matrix
             for i in range(len_X1):
                 for j in range(i, len_X2):
                     gram_matrix[i, j] = self._gram_matrix_element(X1[i], X2[j], sim_docs_kernel_value[i],
-                                                                  sim_docs_kernel_value[j])
-                    #using symmetry
+                                                                 sim_docs_kernel_value[j])
+        #using symmetry
                     gram_matrix[j, i] = gram_matrix[i, j]
         #when lists of documents are not identical but of the same length
         elif len_X1 == len_X2:
             sim_docs_kernel_value[1] = {}
             sim_docs_kernel_value[2] = {}
-            #store K(s,s) values in dictionary to avoid recalculations
+        #store K(s,s) values in dictionary to avoid recalculations
             for i in range(len_X1):
                 sim_docs_kernel_value[1][i] = self._K(self.subseq_length, X1[i], X1[i])
             for i in range(len_X2):
                 sim_docs_kernel_value[2][i] = self._K(self.subseq_length, X2[i], X2[i])
-                #calculate Gram matrix
+        #calculate Gram matrix
             for i in range(len_X1):
                 for j in range(i, len_X2):
                     gram_matrix[i, j] = self._gram_matrix_element(X1[i], X2[j], sim_docs_kernel_value[1][i],
-                                                                  sim_docs_kernel_value[2][j])
-                    #using symmetry
+                                                                 sim_docs_kernel_value[2][j])
+        #using symmetry
                     gram_matrix[j, i] = gram_matrix[i, j]
         #when lists of documents are neither identical nor of the same length
         else:
             sim_docs_kernel_value[1] = {}
             sim_docs_kernel_value[2] = {}
             min_dimens = min(len_X1, len_X2)
-            #store K(s,s) values in dictionary to avoid recalculations
+        #store K(s,s) values in dictionary to avoid recalculations
             for i in range(len_X1):
                 sim_docs_kernel_value[1][i] = self._K(self.subseq_length, X1[i], X1[i])
             for i in range(len_X2):
                 sim_docs_kernel_value[2][i] = self._K(self.subseq_length, X2[i], X2[i])
-                #calculate Gram matrix for square part of rectangle matrix
+        #calculate Gram matrix for square part of rectangle matrix
             for i in range(min_dimens):
                 for j in range(i, min_dimens):
                     gram_matrix[i, j] = self._gram_matrix_element(X1[i], X2[j], sim_docs_kernel_value[1][i],
-                                                                  sim_docs_kernel_value[2][j])
+                                                                 sim_docs_kernel_value[2][j])
                     #using symmetry
                     gram_matrix[j, i] = gram_matrix[i, j]
 
-                    #if more rows than columns
+        #if more rows than columns
             if len_X1 > len_X2:
                 for i in range(min_dimens, len_X1):
                     for j in range(len_X2):
                         gram_matrix[i, j] = self._gram_matrix_element(X1[i], X2[j], sim_docs_kernel_value[1][i],
-                                                                      sim_docs_kernel_value[2][j])
-                        #if more columns than rows
+                                                                     sim_docs_kernel_value[2][j])
+        #if more columns than rows
             else:
                 for i in range(len_X1):
                     for j in range(min_dimens, len_X2):
                         gram_matrix[i, j] = self._gram_matrix_element(X1[i], X2[j], sim_docs_kernel_value[1][i],
-                                                                      sim_docs_kernel_value[2][j])
+                                                                     sim_docs_kernel_value[2][j])
         print sim_docs_kernel_value
         return gram_matrix
 
 
     def fit(self, X, Y):
         gram_matr = self.string_kernel(X, X)
-        print 'gram_matrix ', gram_matr
-        print gram_matr.shape
         self.__X = X
-        print len(self.__X)
         super(svm.SVC, self).fit(gram_matr, Y)
 
 
@@ -250,10 +246,7 @@ class StringKernelSVM(svm.SVC):
             sys.exit(3)
         else:
             gram_matr_predict_new = self.string_kernel(X, self.__X)
-            print gram_matr_predict_new.shape
             gram_matr_predict_new = np.asarray(gram_matr_predict_new, dtype=np.float64, order='C')
-            print 'gram_matr_predict_new ', gram_matr_predict_new
-            print gram_matr_predict_new.shape
             return libsvm.predict(
                 gram_matr_predict_new, self.support_, self.support_vectors_, self.n_support_,
                 self.dual_coef_, self._intercept_,
@@ -273,36 +266,19 @@ if __name__ == '__main__':
     else:
         subseq_length = int(sys.argv[1])
         lambda_decay = float(sys.argv[2])
-        #The dataset is the 20 newsgroups dataset. It will be automatically downloaded, then cached.
+    #The dataset is the 20 newsgroups dataset. It will be automatically downloaded, then cached.
         t_start = time()
-        # news_train = fetch_20newsgroups(subset='train')
-        # X_train = news_train.data[:10]
-        # Y_train = news_train.target[:10]
-        #print('Data fetched in %.3f seconds' % (time() - t_start))
-
-        X_train = ['card' * 2, 'cat133', 'bar2', 'bat3'] * 100
-        Y_train = np.array([2, 1, 0, 0] * 100)
+        news = fetch_20newsgroups(subset='train')
+        X_train = news.data[:10]
+        Y_train = news.target[:10]
         print('Data fetched in %.3f seconds' % (time() - t_start))
 
         clf = StringKernelSVM(subseq_length=subseq_length, lambda_decay=lambda_decay)
         t_start = time()
         clf.fit(X_train, Y_train)
         print('Model trained in %.3f seconds' % (time() - t_start))
-        print 'clf.support_: ', clf.support_
-        print 'clf.support_vectors_: ', clf.support_vectors_
-        print 'clf.n_support_: ', clf.n_support_
-        print 'clf.dual_coef_: ', clf.dual_coef_
-        print 'clf.intercept_: ', clf.intercept_
 
         t_start = time()
-        X_predict = []
-        for i in range(int(len(X_train) * 0.7)):
-            X_predict.append(str(i) + X_train[i] + str(i * 3))
-        X_predict += ['aaa ssssss', '12 3 45678 99999']
-        for i in range(10):
-            X_predict.append(str(random.randint(i ** 2, i ** 3)) * 4)
-
-        result = clf.predict(X_predict)
-        #result = clf.predict(news_train.data[10:14])
+        result = clf.predict(news.data[10:14])
         print('New data predicted in %.3f seconds' % (time() - t_start))
         print result
