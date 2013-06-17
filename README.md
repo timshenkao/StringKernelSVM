@@ -11,4 +11,5 @@ svm.SVC is a basic class from scikit-learn for SVM classification. It uses one-v
 
 FILES:
 stringSVM.py - basic algorithm from the article
-stringSVM_optimized_K2.py - algorithm with K''() from the article
+stringSVM_K2.py - algorithm with K''() from the article. Though authors say that algorithm with K''() is faster,
+    in my realization, it comes out to be slower than basic algorithm.
