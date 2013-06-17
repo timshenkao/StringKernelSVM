@@ -11,8 +11,10 @@ svm.SVC is a basic class from scikit-learn for SVM classification. It uses one-v
 
 FILES:
 stringSVM.py - basic algorithm from the article
+
 stringSVM_K2.py - algorithm with K''() from the article. Though authors say that algorithm with K''() is faster,
-    in my realization, it comes out to be slower than basic algorithm.
+    in my realization, it comes out to be slower than basic algorithm. I suppose because of bad recursion support
+    in Python.
 
 CONCLUSION:
 Algorithms offered in the above mentioned article (pp. 424 - 426) are slow. Recursive realization leads to extensive
