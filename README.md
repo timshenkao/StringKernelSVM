@@ -16,4 +16,5 @@ stringSVM_K2.py - algorithm with K''() from the article. Though authors say that
 
 CONCLUSION:
 Algorithms offered in the above mentioned article (pp. 424 - 426) are slow. Recursive realization leads to extensive
- memory usage (depth of recursion is achieved pretty soon). Caching helps not but so much as desired.
+ memory usage (depth of recursion is achieved pretty soon). Caching helps not but so much as desired. There is
+ a well-known problem with tail recursion in Python.
